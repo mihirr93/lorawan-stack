@@ -1,0 +1,72 @@
+---
+# Identity Server basic configuration
+is:
+  # Use CockroachDB as defined in the docker-compose.yml file
+  database-uri: 'postgres://root@cockroach:26257/ttn_lorawan?sslmode=disable'
+
+  # Basic email configuration
+  email:
+    sender-name: '{{% tts %}}'
+    sender-address: 'noreply@thethings.example.com'
+    network:
+      name: '{{% tts %}}'
+      console-url: 'https://thethings.example.com/console'
+      identity-server-url: 'https://thethings.example.com/oauth'
+
+    # # If using Sendgrid for email
+    # provider: sendgrid
+    # sendgrid:
+    #   api-key: '...'              # enter Sendgrid API key
+
+    # # If using an SMTP Server for email
+    # provider: smtp
+    # smtp:
+    #   address:  '...'             # enter SMTP server address
+    #   username: '...'             # enter SMTP server username
+    #   password: '...'             # enter SMTP server password
+
+  # Web UI configuration
+  oauth:
+    ui:
+      canonical-url: 'https://thethings.example.com/oauth'
+      is: {base-url: 'https://thethings.example.com/api/v3'}
+
+# TLS configuration for Let's Encrypt
+tls:
+  source: 'acme'
+  acme:
+    dir: '/var/lib/acme'
+    email: 'your@email.com'
+    hosts: ['thethings.example.com']
+    default-host: 'thethings.example.com'
+
+# Redis basic configuration
+redis:
+  address: 'redis:6379'
+
+# HTTP server configuration
+http:
+  cookie:
+    block-key: '...'              # generate 32 bytes (openssl rand -hex 32)
+    hash-key: '...'               # generate 64 bytes (openssl rand -hex 64)
+  metrics:
+    password: '...'               # choose a password
+  pprof:
+    password: '...'               # choose a password
+
+# Web UI configuration
+console:
+  ui:
+    canonical-url: 'https://thethings.example.com/console'
+    is: {base-url: 'https://thethings.example.com/api/v3'}
+    gs: {base-url: 'https://thethings.example.com/api/v3'}
+    ns: {base-url: 'https://thethings.example.com/api/v3'}
+    as: {base-url: 'https://thethings.example.com/api/v3'}
+    js: {base-url: 'https://thethings.example.com/api/v3'}
+    qrg: {base-url: 'https://thethings.example.com/api/v3'}
+    edtc: {base-url: 'https://thethings.example.com/api/v3'}
+
+  # Web UI client configuration
+  oauth:
+    client-id: 'console'
+    client-secret: '...'          # choose or generate a secret
