@@ -35,7 +35,7 @@ const mqttBlankValues = {
   tls_client_key: '',
 }
 
-const mapNatsServerUrlToFormValue = function(server_url) {
+export const mapNatsServerUrlToFormValue = function(server_url) {
   try {
     const res = server_url.match(natsUrlRegexp)
     return {
@@ -89,7 +89,9 @@ export const mapPubsubToFormValues = function(pubsub) {
 }
 
 const mapNatsConfigFormValueToNatsServerUrl = ({ username, password, address, port, secure }) =>
-  `${secure ? 'tls' : 'nats'}://${username}:${password}@${address}:${port}`
+  `${secure ? 'tls' : 'nats'}://${username ? `${username}:` : ''}${
+    password ? `${password}@` : ''
+  }${address}:${port}`
 
 const mapMessageTypeFormValueToPubsubMessageType = formValue =>
   (formValue.enabled && { topic: formValue.value }) || null
