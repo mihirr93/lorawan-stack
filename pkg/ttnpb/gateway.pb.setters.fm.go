@@ -499,6 +499,25 @@ func (dst *Gateway) SetFields(src *Gateway, paths ...string) error {
 			} else {
 				dst.ScheduleAnytimeDelay = nil
 			}
+		case "auto_update_location":
+			if len(subs) > 0 {
+				return fmt.Errorf("'auto_update_location' has no subfields, but %s were specified", subs)
+			}
+			if src != nil {
+				dst.AutoUpdateLocation = src.AutoUpdateLocation
+			} else {
+				var zero bool
+				dst.AutoUpdateLocation = zero
+			}
+		case "auto_update_location_debounce_time":
+			if len(subs) > 0 {
+				return fmt.Errorf("'auto_update_location_debounce_time' has no subfields, but %s were specified", subs)
+			}
+			if src != nil {
+				dst.AutoUpdateLocationDebounceTime = src.AutoUpdateLocationDebounceTime
+			} else {
+				dst.AutoUpdateLocationDebounceTime = nil
+			}
 
 		default:
 			return fmt.Errorf("invalid field: '%s'", name)

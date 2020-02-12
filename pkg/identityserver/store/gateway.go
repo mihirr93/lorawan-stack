@@ -60,6 +60,9 @@ type Gateway struct {
 	ScheduleAnytimeDelay   int64 `gorm:"default:0 not null"`
 	DownlinkPathConstraint int
 
+	AutoUpdateLocation             bool  `gorm:"not null"`
+	AutoUpdateLocationDebounceTime int64 `gorm:"default:0 not null"`
+
 	Antennas []GatewayAntenna
 }
 
@@ -101,6 +104,11 @@ var gatewayPBSetters = map[string]func(*ttnpb.Gateway, *Gateway){
 	scheduleAnytimeDelayField: func(pb *ttnpb.Gateway, gtw *Gateway) {
 		d := time.Duration(gtw.ScheduleAnytimeDelay)
 		pb.ScheduleAnytimeDelay = &d
+	},
+	autoUpdateLocationField: func(pb *ttnpb.Gateway, gtw *Gateway) { pb.AutoUpdateLocation = gtw.AutoUpdateLocation },
+	autoUpdateLocationDebounceTimeField: func(pb *ttnpb.Gateway, gtw *Gateway) {
+		d := time.Duration(gtw.AutoUpdateLocationDebounceTime)
+		pb.AutoUpdateLocationDebounceTime = &d
 	},
 	enforceDutyCycleField: func(pb *ttnpb.Gateway, gtw *Gateway) { pb.EnforceDutyCycle = gtw.EnforceDutyCycle },
 	downlinkPathConstraintField: func(pb *ttnpb.Gateway, gtw *Gateway) {
@@ -145,6 +153,14 @@ var gatewayModelSetters = map[string]func(*Gateway, *ttnpb.Gateway){
 			gtw.ScheduleAnytimeDelay = 0
 		} else {
 			gtw.ScheduleAnytimeDelay = int64(*pb.ScheduleAnytimeDelay)
+		}
+	},
+	autoUpdateLocationField: func(gtw *Gateway, pb *ttnpb.Gateway) { gtw.AutoUpdateLocation = pb.AutoUpdateLocation },
+	autoUpdateLocationDebounceTimeField: func(gtw *Gateway, pb *ttnpb.Gateway) {
+		if pb.AutoUpdateLocationDebounceTime == nil {
+			gtw.AutoUpdateLocationDebounceTime = 0
+		} else {
+			gtw.AutoUpdateLocationDebounceTime = int64(*pb.AutoUpdateLocationDebounceTime)
 		}
 	},
 	enforceDutyCycleField:       func(gtw *Gateway, pb *ttnpb.Gateway) { gtw.EnforceDutyCycle = pb.EnforceDutyCycle },

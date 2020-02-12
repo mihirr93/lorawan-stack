@@ -21,6 +21,8 @@ const (
 	applicationServerAddressField       = "application_server_address"
 	attributesField                     = "attributes"
 	autoUpdateField                     = "auto_update"
+	autoUpdateLocationField             = "auto_update_location"
+	autoUpdateLocationDebounceTimeField = "auto_update_location_debounce_time"
 	brandIDField                        = "version_ids.brand_id"
 	contactInfoField                    = "contact_info"
 	descriptionField                    = "description"

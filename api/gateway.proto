@@ -125,8 +125,12 @@ message Gateway {
   DownlinkPathConstraint downlink_path_constraint = 18 [(validate.rules).enum.defined_only = true];
   // Adjust the time that GS schedules class C messages in advance. This is useful for gateways that have a known high latency backhaul, like 3G and satellite.
   google.protobuf.Duration schedule_anytime_delay = 19 [(gogoproto.stdduration) = true, (gogoproto.nullable) = true];
+  // update the location of this gateway from status messages
+  bool auto_update_location = 21;
+  // debounce time for gateway location updates from status messages.
+  google.protobuf.Duration auto_update_location_debounce_time = 22 [(gogoproto.stdduration) = true, (gogoproto.nullable) = true];
 
-  // next: 21
+  // next: 23
 }
 
 message Gateways {
