@@ -48,7 +48,7 @@ The `ports` section exposes {{% tts %}}'s ports to the world. Port `80` and `443
 stack:
   image: 'thethingsnetwork/lorawan-stack:<the tag>'
   entrypoint: 'ttn-lw-stack'
-  command: 'start'
+  command: 'start all -c /config/ttn-lw-stack.yml'
   restart: 'unless-stopped'
   depends_on:
     - 'cockroach'
@@ -56,7 +56,7 @@ stack:
   volumes:
     - './acme:/var/lib/acme'
     - './data/blob:/srv/ttn-lorawan/public/blob'
-    - './ttn-lw-stack.yml:/.ttn-lw-stack.yml:ro'
+    - './config/stack:/config:ro'
   ports:
     - '80:1885'
     - '443:8885'
