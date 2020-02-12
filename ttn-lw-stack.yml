@@ -1,4 +1,6 @@
----
+# Example ttn-lw-stack configuration file
+# Keep in sync with `doc/content/guides/getting-started/configuration.md
+
 # Identity Server basic configuration
 is:
   # Use CockroachDB as defined in the docker-compose.yml file
@@ -29,7 +31,8 @@ is:
   oauth:
     ui:
       canonical-url: 'https://thethings.example.com/oauth'
-      is: {base-url: 'https://thethings.example.com/api/v3'}
+      is:
+        base-url: 'https://thethings.example.com/api/v3'
 
 # TLS configuration for Let's Encrypt
 tls:
@@ -58,13 +61,20 @@ http:
 console:
   ui:
     canonical-url: 'https://thethings.example.com/console'
-    is: {base-url: 'https://thethings.example.com/api/v3'}
-    gs: {base-url: 'https://thethings.example.com/api/v3'}
-    ns: {base-url: 'https://thethings.example.com/api/v3'}
-    as: {base-url: 'https://thethings.example.com/api/v3'}
-    js: {base-url: 'https://thethings.example.com/api/v3'}
-    qrg: {base-url: 'https://thethings.example.com/api/v3'}
-    edtc: {base-url: 'https://thethings.example.com/api/v3'}
+    is:
+      base-url: 'https://thethings.example.com/api/v3'
+    gs:
+      base-url: 'https://thethings.example.com/api/v3'
+    ns:
+      base-url: 'https://thethings.example.com/api/v3'
+    as:
+      base-url: 'https://thethings.example.com/api/v3'
+    js:
+      base-url: 'https://thethings.example.com/api/v3'
+    qrg:
+      base-url: 'https://thethings.example.com/api/v3'
+    edtc:
+      base-url: 'https://thethings.example.com/api/v3'
 
   # Web UI client configuration
   oauth:

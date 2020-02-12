@@ -75,25 +75,27 @@ stack:
 
 Next, we'll have a look at the configuration options for your private deployment. We'll set these options in the `ttn-lw-stack.yml` file that is mounted as a volume on the `stack` service in `docker-compose.yml`.
 
-The basic things that should be configured are:
+The first thing we should configure are the databases used by the stack. We will
+set these to the CockroachDB and Redis instances that were defined in the
+`docker-compose.yml` file above.
 
-- The databases used by the stack. We will set these to the CockroachDB and Redis
-  instances that were defined in `docker-compose.yml`
-- TLS with Let's Encrypt. Since we're deploying {{% tts %}} on
-  `thethings.example.com`, we configure it to only request certificates for that
-  host, and also to use it as the default host.
-- HTTP server keys for encrypting and verifying cookies, as well as passwords
-  for endpoints that you may want to keep for internal use.
-- {{% tts %}} sends emails to users, so we need to configure how these are sent.
-  You can use Sendgrid or an SMTP server. If you skip setting up an email provider,
-  {{% tts %}} will print emails to the stack logs.
-- The URLs for the Web UI
-- The secret used for the console client.
+Next is TLS with Let's Encrypt. Since we're deploying {{% tts %}} on
+`thethings.example.com`, we configure it to only request certificates for that
+host, and also to use it as the default host.
 
-Below is an example `ttn-lw-stack.yml` file.
+We also configure HTTP server keys for encrypting and verifying cookies, as well
+as passwords for endpoints that you may want to keep for internal use.
+
+{{% tts %}} sends emails to users, so we need to configure how these are sent.
+You can use Sendgrid or an SMTP server. If you skip setting up an email provider,
+{{% tts %}} will print emails to the stack logs.
+
+Finally, we also need to configure the URLs for the Web UI and the secret used
+by the console client.
+
+Below is an example `ttn-lw-stack.yml` file:
 
 ```yaml
----
 # Identity Server basic configuration
 is:
   # Use CockroachDB as defined in the docker-compose.yml file
@@ -124,7 +126,8 @@ is:
   oauth:
     ui:
       canonical-url: 'https://thethings.example.com/oauth'
-      is: {base-url: 'https://thethings.example.com/api/v3'}
+      is:
+        base-url: 'https://thethings.example.com/api/v3'
 
 # TLS configuration for Let's Encrypt
 tls:
@@ -153,13 +156,20 @@ http:
 console:
   ui:
     canonical-url: 'https://thethings.example.com/console'
-    is: {base-url: 'https://thethings.example.com/api/v3'}
-    gs: {base-url: 'https://thethings.example.com/api/v3'}
-    ns: {base-url: 'https://thethings.example.com/api/v3'}
-    as: {base-url: 'https://thethings.example.com/api/v3'}
-    js: {base-url: 'https://thethings.example.com/api/v3'}
-    qrg: {base-url: 'https://thethings.example.com/api/v3'}
-    edtc: {base-url: 'https://thethings.example.com/api/v3'}
+    is:
+      base-url: 'https://thethings.example.com/api/v3'
+    gs:
+      base-url: 'https://thethings.example.com/api/v3'
+    ns:
+      base-url: 'https://thethings.example.com/api/v3'
+    as:
+      base-url: 'https://thethings.example.com/api/v3'
+    js:
+      base-url: 'https://thethings.example.com/api/v3'
+    qrg:
+      base-url: 'https://thethings.example.com/api/v3'
+    edtc:
+      base-url: 'https://thethings.example.com/api/v3'
 
   # Web UI client configuration
   oauth:
