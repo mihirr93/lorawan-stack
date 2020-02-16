@@ -96,63 +96,76 @@ by the console client.
 Below is an example `ttn-lw-stack.yml` file:
 
 ```yaml
-# Identity Server basic configuration
+# Example ttn-lw-stack configuration file
+
+# Redis configuration
+redis:
+  address: 'redis:6379'
+
+# Identity Server configuration
 is:
-  # Use CockroachDB as defined in the docker-compose.yml file
+  # If using CockroachDB
   database-uri: 'postgres://root@cockroach:26257/ttn_lorawan?sslmode=disable'
 
-  # Basic email configuration
+  # If using PostgreSQL:
+  # database-uri: 'postgres://root@postgres:5432/ttn_lorawan?sslmode=disable'
+
+  # Email configuration for "thethings.example.com"
   email:
-    sender-name: '{{% tts %}}'
+    sender-name: 'The Things Stack'
     sender-address: 'noreply@thethings.example.com'
     network:
-      name: '{{% tts %}}'
+      name: 'The Things Stack'
       console-url: 'https://thethings.example.com/console'
       identity-server-url: 'https://thethings.example.com/oauth'
 
-    # # If using Sendgrid for email
-    # provider: sendgrid
-    # sendgrid:
-    #   api-key: '...'              # enter Sendgrid API key
-
-    # # If using an SMTP Server for email
-    # provider: smtp
-    # smtp:
-    #   address:  '...'             # enter SMTP server address
-    #   username: '...'             # enter SMTP server username
-    #   password: '...'             # enter SMTP server password
-
-  # Web UI configuration
+  # Web UI configuration for "thethings.example.com":
   oauth:
     ui:
       canonical-url: 'https://thethings.example.com/oauth'
       is:
         base-url: 'https://thethings.example.com/api/v3'
 
-# TLS configuration for Let's Encrypt
+# HTTP server configuration
+http:
+  cookie:
+    # generate 32 bytes (openssl rand -hex 32)
+    block-key: '0011223344556677001122334455667700112233445566770011223344556677'
+    # generate 64 bytes (openssl rand -hex 64)
+    hash-key: '00112233445566770011223344556677001122334455667700112233445566770011223344556677001122334455667700112233445566770011223344556677'
+  metrics:
+    password: 'metrics'               # choose a password
+  pprof:
+    password: 'pprof'                 # choose a password
+
+# Let's encrypt for "thethings.example.com"
 tls:
   source: 'acme'
   acme:
     dir: '/var/lib/acme'
-    email: 'your@email.com'
+    email: 'you@thethings.example.com'
     hosts: ['thethings.example.com']
     default-host: 'thethings.example.com'
 
-# Redis basic configuration
-redis:
-  address: 'redis:6379'
+# If Gateway Server enabled, defaults for "thethings.example.com":
+gs:
+  mqtt:
+    public-address: 'thethings.example.com:1882'
+    public-tls-address: 'thethings.example.com:8882'
+  mqtt-v2:
+    public-address: 'thethings.example.com:1881'
+    public-tls-address: 'thethings.example.com:8881'
 
-# HTTP server configuration
-http:
-  cookie:
-    block-key: '...'              # generate 32 bytes (openssl rand -hex 32)
-    hash-key: '...'               # generate 64 bytes (openssl rand -hex 64)
-  metrics:
-    password: '...'               # choose a password
-  pprof:
-    password: '...'               # choose a password
+# If Gateway Configuration Server enabled, defaults for "thethings.example.com":
+gcs:
+  basic-station:
+    default:
+      lns-uri: 'wss://thethings.example.com:8887'
+  the-things-gateway:
+    default:
+      mqtt-server: 'mqtts://thethings.example.com:8881'
 
-# Web UI configuration
+# Web UI configuration for "thethings.example.com":
 console:
   ui:
     canonical-url: 'https://thethings.example.com/console'
@@ -171,10 +184,9 @@ console:
     edtc:
       base-url: 'https://thethings.example.com/api/v3'
 
-  # Web UI client configuration
   oauth:
     client-id: 'console'
-    client-secret: '...'          # choose or generate a secret (*)
+    client-secret: 'console'          # choose or generate a secret (*)
 ```
 
-(*) You will need the `client-secret` again in a later step.
+(*) You will need the `client.oauth.client-secret` again in a later step.

@@ -1,82 +1,127 @@
 # Example ttn-lw-stack configuration file
-# Keep in sync with `doc/content/guides/getting-started/configuration.md
+# Keep in sync with `doc/content/guides/getting-started/configuration.md`
 
-# Identity Server basic configuration
+# Redis configuration
+redis:
+  address: 'redis:6379'
+
+# Identity Server configuration
 is:
-  # Use CockroachDB as defined in the docker-compose.yml file
+  # If using CockroachDB
   database-uri: 'postgres://root@cockroach:26257/ttn_lorawan?sslmode=disable'
 
-  # Basic email configuration
-  email:
-    sender-name: '{{% tts %}}'
-    sender-address: 'noreply@thethings.example.com'
-    network:
-      name: '{{% tts %}}'
-      console-url: 'https://thethings.example.com/console'
-      identity-server-url: 'https://thethings.example.com/oauth'
+  # If using PostgreSQL:
+  # database-uri: 'postgres://root@postgres:5432/ttn_lorawan?sslmode=disable'
 
-    # # If using Sendgrid for email
+  # Email configuration for "thethings.example.com"
+  # email:
+    # sender-name: 'The Things Stack'
+    # sender-address: 'noreply@thethings.example.com'
+    # network:
+    #   name: 'The Things Stack'
+    #   console-url: 'https://thethings.example.com/console'
+    #   identity-server-url: 'https://thethings.example.com/oauth'
+
+    # If sending email with Sendgrid
     # provider: sendgrid
     # sendgrid:
     #   api-key: '...'              # enter Sendgrid API key
 
-    # # If using an SMTP Server for email
+    # If sending email with SMTP
     # provider: smtp
     # smtp:
     #   address:  '...'             # enter SMTP server address
     #   username: '...'             # enter SMTP server username
     #   password: '...'             # enter SMTP server password
 
-  # Web UI configuration
-  oauth:
-    ui:
-      canonical-url: 'https://thethings.example.com/oauth'
-      is:
-        base-url: 'https://thethings.example.com/api/v3'
-
-# TLS configuration for Let's Encrypt
-tls:
-  source: 'acme'
-  acme:
-    dir: '/var/lib/acme'
-    email: 'your@email.com'
-    hosts: ['thethings.example.com']
-    default-host: 'thethings.example.com'
-
-# Redis basic configuration
-redis:
-  address: 'redis:6379'
+  # Web UI configuration for "thethings.example.com":
+  # oauth:
+  #   ui:
+  #     canonical-url: 'https://thethings.example.com/oauth'
+  #     is:
+  #       base-url: 'https://thethings.example.com/api/v3'
 
 # HTTP server configuration
-http:
-  cookie:
-    block-key: '...'              # generate 32 bytes (openssl rand -hex 32)
-    hash-key: '...'               # generate 64 bytes (openssl rand -hex 64)
-  metrics:
-    password: '...'               # choose a password
-  pprof:
-    password: '...'               # choose a password
+# http:
+#   cookie:
+#     block-key: '...'                # generate 32 bytes (openssl rand -hex 32)
+#     hash-key: '...'                 # generate 64 bytes (openssl rand -hex 64)
+#   metrics:
+#     password: 'metrics'               # choose a password
+#   pprof:
+#     password: 'pprof'                 # choose a password
 
-# Web UI configuration
-console:
-  ui:
-    canonical-url: 'https://thethings.example.com/console'
-    is:
-      base-url: 'https://thethings.example.com/api/v3'
-    gs:
-      base-url: 'https://thethings.example.com/api/v3'
-    ns:
-      base-url: 'https://thethings.example.com/api/v3'
-    as:
-      base-url: 'https://thethings.example.com/api/v3'
-    js:
-      base-url: 'https://thethings.example.com/api/v3'
-    qrg:
-      base-url: 'https://thethings.example.com/api/v3'
-    edtc:
-      base-url: 'https://thethings.example.com/api/v3'
+# If using (self) signed certificates:
+tls:
+  source: file
+  root-ca: /run/secrets/cert.pem
+  certificate: /run/secrets/cert.pem
+  key: /run/secrets/key.pem
 
-  # Web UI client configuration
-  oauth:
-    client-id: 'console'
-    client-secret: '...'          # choose or generate a secret
+# Let's encrypt for "thethings.example.com"
+# tls:
+#   source: 'acme'
+#   acme:
+#     dir: '/var/lib/acme'
+#     email: 'you@thethings.example.com'
+#     hosts: ['thethings.example.com']
+#     default-host: 'thethings.example.com'
+
+# If Gateway Server enabled, defaults for "thethings.example.com":
+# gs:
+#   mqtt:
+#     public-address: 'thethings.example.com:1882'
+#     public-tls-address: 'thethings.example.com:8882'
+#   mqtt-v2:
+#     public-address: 'thethings.example.com:1881'
+#     public-tls-address: 'thethings.example.com:8881'
+
+# If Gateway Configuration Server enabled, defaults for "thethings.example.com":
+# gcs:
+#   basic-station:
+#     default:
+#       lns-uri: 'wss://thethings.example.com:8887'
+#   the-things-gateway:
+#     default:
+#       mqtt-server: 'mqtts://thethings.example.com:8881'
+
+# Web UI configuration for "thethings.example.com":
+# console:
+#   ui:
+#     canonical-url: 'https://thethings.example.com/console'
+#     is:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     gs:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     ns:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     as:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     js:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     qrg:
+#       base-url: 'https://thethings.example.com/api/v3'
+#     edtc:
+#       base-url: 'https://thethings.example.com/api/v3'
+#
+#   oauth:
+#     client-id: 'console'
+#     client-secret: 'console'          # choose or generate a secret
+
+# If Application Server enabled, Application Server interoperability configuration:
+# as:
+#   interop:
+#     directory: /path/to/interop/repository
+#     url: https://thethings.example.com
+#     blob:
+#       path: /path/to/interop/directory
+#       bucket: '...'                 # enter bucket name
+
+# If Network Server enabled, Network Server interoperability configuration:
+# ns:
+#   interop:
+#     directory: /path/to/interop/repository
+#     url: https://thethings.example.com
+#     blob:
+#       path: /path/to/interop/directory
+#       bucket: '...'                 # enter bucket name
