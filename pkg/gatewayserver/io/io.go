@@ -87,6 +87,7 @@ type Connection struct {
 	downCh   chan *ttnpb.DownlinkMessage
 	statusCh chan *ttnpb.GatewayStatus
 	txAckCh  chan *ttnpb.TxAcknowledgment
+	locCh    chan *ttnpb.Location
 }
 
 var (
@@ -147,6 +148,7 @@ func NewConnection(ctx context.Context, frontend Frontend, gateway *ttnpb.Gatewa
 		downCh:      make(chan *ttnpb.DownlinkMessage, bufferSize),
 		statusCh:    make(chan *ttnpb.GatewayStatus, bufferSize),
 		txAckCh:     make(chan *ttnpb.TxAcknowledgment, bufferSize),
+		locCh:       make(chan *ttnpb.Location, bufferSize),
 		connectTime: time.Now().UnixNano(),
 	}, nil
 }
@@ -233,10 +235,25 @@ func (c *Connection) HandleStatus(status *ttnpb.GatewayStatus) error {
 	case c.statusCh <- status:
 		c.lastStatus.Store(status)
 		atomic.StoreInt64(&c.lastStatusTime, time.Now().UnixNano())
+
+		antennaLocations := status.GetAntennaLocations()
+		if len(antennaLocations) > 0 && c.gateway.UpdateLocationFromStatus {
+			// TODO: handle multiple antenna locations
+			select {
+			case c.locCh <- antennaLocations[0]:
+			default:
+				log.FromContext(c.ctx).Warnf("Drop gateway location")
+			}
+		}
 	default:
 		return errBufferFull
 	}
 	return nil
+}
+
+// UpdateAntennas updates antenna information for gateway
+func (c *Connection) UpdateAntennas(antennas []ttnpb.GatewayAntenna) {
+	c.gateway.Antennas = antennas
 }
 
 // HandleTxAck sends the acknowledgment to the status channel.
@@ -506,6 +523,11 @@ func (c *Connection) Down() <-chan *ttnpb.DownlinkMessage {
 // TxAck returns the downlink acknowledgments channel.
 func (c *Connection) TxAck() <-chan *ttnpb.TxAcknowledgment {
 	return c.txAckCh
+}
+
+// Location returns the locations channel.
+func (c *Connection) Location() <-chan *ttnpb.Location {
+	return c.locCh
 }
 
 // ConnectTime returns the time the gateway connected.

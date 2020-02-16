@@ -390,6 +390,8 @@ func (gs *GatewayServer) Connect(ctx context.Context, frontend io.Frontend, ids 
 				"location_public",
 				"schedule_anytime_delay",
 				"schedule_downlink_late",
+				"update_location_from_status",
+				"update_location_from_status_debounce_time",
 			},
 		},
 	}, callOpt)
@@ -403,13 +405,14 @@ func (gs *GatewayServer) Connect(ctx context.Context, frontend io.Frontend, ids 
 		}
 		logger.Warn("Connect unregistered gateway")
 		gtw = &ttnpb.Gateway{
-			GatewayIdentifiers:     ids,
-			FrequencyPlanID:        fpID,
-			FrequencyPlanIDs:       []string{fpID},
-			EnforceDutyCycle:       true,
-			DownlinkPathConstraint: ttnpb.DOWNLINK_PATH_CONSTRAINT_NONE,
-			Antennas:               []ttnpb.GatewayAntenna{},
-			LocationPublic:         false,
+			GatewayIdentifiers:       ids,
+			FrequencyPlanID:          fpID,
+			FrequencyPlanIDs:         []string{fpID},
+			EnforceDutyCycle:         true,
+			DownlinkPathConstraint:   ttnpb.DOWNLINK_PATH_CONSTRAINT_NONE,
+			Antennas:                 []ttnpb.GatewayAntenna{},
+			LocationPublic:           false,
+			UpdateLocationFromStatus: false,
 		}
 	} else if err != nil {
 		return nil, err
@@ -436,6 +439,10 @@ func (gs *GatewayServer) Connect(ctx context.Context, frontend io.Frontend, ids 
 	registerGatewayConnect(ctx, ids)
 	logger.Info("Connected")
 	go gs.handleUpstream(connEntry)
+
+	if gtw.UpdateLocationFromStatus {
+		go gs.handleLocationUpdates(connEntry)
+	}
 
 	for name, handler := range gs.upstreamHandlers {
 		go func(name string, handler upstream.Handler) {
@@ -631,6 +638,83 @@ func (gs *GatewayServer) handleUpstream(conn connectionEntry) {
 						registerFailStatus(ctx, conn.Gateway(), msg, host.name)
 					}
 				}
+			}
+		}
+	}
+}
+
+func (gs *GatewayServer) handleLocationUpdates(conn connectionEntry) {
+	ctx := conn.Context()
+	uid := unique.ID(ctx, conn.Gateway())
+
+	logger := log.FromContext(ctx).WithFields(log.Fields(
+		"protocol", conn.Frontend().Protocol(),
+		"gateway_uid", uid,
+	))
+
+	var err error
+	var callOpt grpc.CallOption
+	callOpt, err = rpcmetadata.WithForwardedAuth(ctx, gs.AllowInsecureForCredentials())
+	if errors.IsUnauthenticated(err) {
+		callOpt = gs.WithClusterAuth()
+	} else if err != nil {
+		logger.WithError(err).Errorf("Not authenticated for location updates")
+		return
+	}
+	registry, err := gs.getRegistry(ctx, &conn.Gateway().GatewayIdentifiers)
+	if err != nil {
+		logger.WithError(err).Errorf("Not authenticated for location updates")
+		return
+	}
+
+	var location *ttnpb.Location
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case location = <-conn.Location():
+			// Drop older updates
+			for len(conn.Location()) > 0 {
+				location = <-conn.Location()
+			}
+
+			antennas := conn.Gateway().Antennas
+			if location != nil && len(antennas) > 0 {
+				// TODO: handle multiple antenna locations
+				location.Source = ttnpb.SOURCE_GPS
+				antennas[0].Location = *location
+
+				conn.UpdateAntennas(antennas)
+			} else {
+				logger.Warnf("No antenna, not updating location")
+			}
+
+			_, err := registry.Update(ctx, &ttnpb.UpdateGatewayRequest{
+				Gateway: ttnpb.Gateway{
+					GatewayIdentifiers: conn.Gateway().GatewayIdentifiers,
+					Antennas:           conn.Gateway().Antennas,
+				},
+				FieldMask: pbtypes.FieldMask{
+					Paths: []string{
+						"antennas",
+					},
+				},
+			}, callOpt)
+
+			if err != nil {
+				logger.WithError(err).Errorf("Antenna location update failed")
+			}
+
+			duration := time.Second // a sane default
+			if debounceTime := conn.Gateway().UpdateLocationFromStatusDebounceTime; debounceTime != nil {
+				duration = *debounceTime
+			}
+
+			timeout := time.After(duration)
+			select {
+			case <-ctx.Done():
+				return
+			case <-timeout:
 			}
 		}
 	}
