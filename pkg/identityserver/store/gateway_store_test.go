@@ -38,6 +38,7 @@ func TestGatewayStore(t *testing.T) {
 
 		eui := &types.EUI64{1, 2, 3, 4, 5, 6, 7, 8}
 		scheduleAnytimeDelay := time.Second
+		updateLocationFromStatusDebounceTime := 2 * time.Second
 		created, err := store.CreateGateway(ctx, &ttnpb.Gateway{
 			GatewayIdentifiers: ttnpb.GatewayIdentifiers{
 				GatewayID: "foo",
@@ -53,7 +54,9 @@ func TestGatewayStore(t *testing.T) {
 			Antennas: []ttnpb.GatewayAntenna{
 				{Gain: 3, Location: ttnpb.Location{Latitude: 12.345, Longitude: 23.456, Altitude: 1090, Accuracy: 1}},
 			},
-			ScheduleAnytimeDelay: &scheduleAnytimeDelay,
+			ScheduleAnytimeDelay:                 &scheduleAnytimeDelay,
+			UpdateLocationFromStatus:             true,
+			UpdateLocationFromStatusDebounceTime: &updateLocationFromStatusDebounceTime,
 		})
 
 		a.So(err, should.BeNil)
@@ -68,6 +71,8 @@ func TestGatewayStore(t *testing.T) {
 			a.So(created.CreatedAt, should.HappenAfter, time.Now().Add(-1*time.Hour))
 			a.So(created.UpdatedAt, should.HappenAfter, time.Now().Add(-1*time.Hour))
 			a.So(*created.ScheduleAnytimeDelay, should.Equal, time.Second)
+			a.So(created.UpdateLocationFromStatus, should.BeTrue)
+			a.So(*created.UpdateLocationFromStatusDebounceTime, should.Equal, 2*time.Second)
 		}
 
 		got, err := store.GetGateway(ctx, &ttnpb.GatewayIdentifiers{GatewayID: "foo"}, &pbtypes.FieldMask{Paths: []string{"name", "attributes"}})
@@ -110,8 +115,10 @@ func TestGatewayStore(t *testing.T) {
 				{Gain: 6, Location: ttnpb.Location{Latitude: 12.345, Longitude: 23.456, Altitude: 1090, Accuracy: 1}, Attributes: map[string]string{"direction": "west"}},
 				{Gain: 6, Location: ttnpb.Location{Latitude: 12.345, Longitude: 23.456, Altitude: 1090, Accuracy: 1}, Attributes: map[string]string{"direction": "east"}},
 			},
-			ScheduleAnytimeDelay: nil,
-		}, &pbtypes.FieldMask{Paths: []string{"description", "attributes", "antennas", "schedule_anytime_delay"}})
+			ScheduleAnytimeDelay:                 nil,
+			UpdateLocationFromStatusDebounceTime: nil,
+			UpdateLocationFromStatus:             false,
+		}, &pbtypes.FieldMask{Paths: []string{"description", "attributes", "antennas", "schedule_anytime_delay", "update_location_from_status", "update_location_from_status_debounce_time"}})
 
 		a.So(err, should.BeNil)
 		if a.So(updated, should.NotBeNil) {
@@ -126,6 +133,8 @@ func TestGatewayStore(t *testing.T) {
 			a.So(updated.CreatedAt, should.Equal, created.CreatedAt)
 			a.So(updated.UpdatedAt, should.HappenAfter, created.CreatedAt)
 			a.So(*updated.ScheduleAnytimeDelay, should.Equal, time.Duration(0))
+			a.So(*updated.UpdateLocationFromStatusDebounceTime, should.Equal, time.Duration(0))
+			a.So(updated.UpdateLocationFromStatus, should.BeFalse)
 		}
 
 		got, err = store.GetGateway(ctx, &ttnpb.GatewayIdentifiers{GatewayID: "foo"}, nil)
