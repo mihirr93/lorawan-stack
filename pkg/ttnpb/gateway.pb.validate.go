@@ -774,14 +774,14 @@ func (m *Gateway) ValidateFields(paths ...string) error {
 				}
 			}
 
-		case "auto_update_location":
-			// no validation rules for AutoUpdateLocation
-		case "auto_update_location_debounce_time":
+		case "update_location_from_status":
+			// no validation rules for UpdateLocationFromStatus
+		case "update_location_from_status_debounce_time":
 
-			if v, ok := interface{}(m.GetAutoUpdateLocationDebounceTime()).(interface{ ValidateFields(...string) error }); ok {
+			if v, ok := interface{}(m.GetUpdateLocationFromStatusDebounceTime()).(interface{ ValidateFields(...string) error }); ok {
 				if err := v.ValidateFields(subs...); err != nil {
 					return GatewayValidationError{
-						field:  "auto_update_location_debounce_time",
+						field:  "update_location_from_status_debounce_time",
 						reason: "embedded message failed validation",
 						cause:  err,
 					}

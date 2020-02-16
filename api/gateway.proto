@@ -126,9 +126,9 @@ message Gateway {
   // Adjust the time that GS schedules class C messages in advance. This is useful for gateways that have a known high latency backhaul, like 3G and satellite.
   google.protobuf.Duration schedule_anytime_delay = 19 [(gogoproto.stdduration) = true, (gogoproto.nullable) = true];
   // update the location of this gateway from status messages
-  bool auto_update_location = 21;
+  bool update_location_from_status = 21;
   // debounce time for gateway location updates from status messages.
-  google.protobuf.Duration auto_update_location_debounce_time = 22 [(gogoproto.stdduration) = true, (gogoproto.nullable) = true];
+  google.protobuf.Duration update_location_from_status_debounce_time = 22 [(gogoproto.stdduration) = true, (gogoproto.nullable) = true];
 
   // next: 23
 }

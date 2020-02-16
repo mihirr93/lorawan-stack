@@ -499,24 +499,24 @@ func (dst *Gateway) SetFields(src *Gateway, paths ...string) error {
 			} else {
 				dst.ScheduleAnytimeDelay = nil
 			}
-		case "auto_update_location":
+		case "update_location_from_status":
 			if len(subs) > 0 {
-				return fmt.Errorf("'auto_update_location' has no subfields, but %s were specified", subs)
+				return fmt.Errorf("'update_location_from_status' has no subfields, but %s were specified", subs)
 			}
 			if src != nil {
-				dst.AutoUpdateLocation = src.AutoUpdateLocation
+				dst.UpdateLocationFromStatus = src.UpdateLocationFromStatus
 			} else {
 				var zero bool
-				dst.AutoUpdateLocation = zero
+				dst.UpdateLocationFromStatus = zero
 			}
-		case "auto_update_location_debounce_time":
+		case "update_location_from_status_debounce_time":
 			if len(subs) > 0 {
-				return fmt.Errorf("'auto_update_location_debounce_time' has no subfields, but %s were specified", subs)
+				return fmt.Errorf("'update_location_from_status_debounce_time' has no subfields, but %s were specified", subs)
 			}
 			if src != nil {
-				dst.AutoUpdateLocationDebounceTime = src.AutoUpdateLocationDebounceTime
+				dst.UpdateLocationFromStatusDebounceTime = src.UpdateLocationFromStatusDebounceTime
 			} else {
-				dst.AutoUpdateLocationDebounceTime = nil
+				dst.UpdateLocationFromStatusDebounceTime = nil
 			}
 
 		default:

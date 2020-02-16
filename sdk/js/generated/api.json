@@ -9960,7 +9960,7 @@
               "defaultValue": ""
             },
             {
-              "name": "auto_update_location",
+              "name": "update_location_from_status",
               "description": "update the location of this gateway from status messages",
               "label": "",
               "type": "bool",
@@ -9970,7 +9970,7 @@
               "defaultValue": ""
             },
             {
-              "name": "auto_update_location_debounce_time",
+              "name": "update_location_from_status_debounce_time",
               "description": "debounce time for gateway location updates from status messages.",
               "label": "",
               "type": "Duration",
