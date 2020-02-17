@@ -326,7 +326,8 @@ func TestWebhooks(t *testing.T) {
 						if !a.So(err, should.BeNil) {
 							t.FailNow()
 						}
-						a.So(actualBody, should.Resemble, expectedBody)
+						a.So(expectedBody, should.HaveLength, 1)
+						a.So(actualBody, should.Resemble, expectedBody[0])
 					})
 				}
 			})

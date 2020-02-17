@@ -155,18 +155,20 @@ func (c *connection) setup(ctx context.Context) error {
 				if topicParts == nil {
 					continue
 				}
-				buf, err := c.format.FromUp(up.ApplicationUp)
+				msgs, err := c.format.FromUp(up.ApplicationUp)
 				if err != nil {
 					logger.WithError(err).Warn("Failed to marshal upstream message")
 					continue
 				}
 				logger.Debug("Publish upstream message")
-				c.session.Publish(&packet.PublishPacket{
-					TopicName:  topic.Join(topicParts),
-					TopicParts: topicParts,
-					QoS:        qosUpstream,
-					Message:    buf,
-				})
+				for _, msg := range msgs {
+					c.session.Publish(&packet.PublishPacket{
+						TopicName:  topic.Join(topicParts),
+						TopicParts: topicParts,
+						QoS:        qosUpstream,
+						Message:    msg,
+					})
+				}
 			}
 		}
 	}()

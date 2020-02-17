@@ -336,17 +336,16 @@ func (w *webhooks) handleUp(ctx context.Context, msg *ttnpb.ApplicationUp) error
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			req, err := w.newRequest(ctx, msg, hook)
+			reqs, err := w.newRequests(ctx, msg, hook)
 			if err != nil {
 				logger.WithError(err).Warn("Failed to create request")
 				return
 			}
-			if req == nil {
-				return
-			}
-			logger.WithField("url", req.URL).Debug("Process message")
-			if err := w.target.Process(req); err != nil {
-				logger.WithError(err).Warn("Failed to process message")
+			for _, req := range reqs {
+				logger.WithField("url", req.URL).Debug("Process message")
+				if err := w.target.Process(req); err != nil {
+					logger.WithError(err).Warn("Failed to process message")
+				}
 			}
 		}()
 	}
@@ -354,7 +353,7 @@ func (w *webhooks) handleUp(ctx context.Context, msg *ttnpb.ApplicationUp) error
 	return nil
 }
 
-func (w *webhooks) newRequest(ctx context.Context, msg *ttnpb.ApplicationUp, hook *ttnpb.ApplicationWebhook) (*http.Request, error) {
+func (w *webhooks) newRequests(ctx context.Context, msg *ttnpb.ApplicationUp, hook *ttnpb.ApplicationWebhook) ([]*http.Request, error) {
 	var cfg *ttnpb.ApplicationWebhook_Message
 	switch msg.Up.(type) {
 	case *ttnpb.ApplicationUp_UplinkMessage:
@@ -394,21 +393,25 @@ func (w *webhooks) newRequest(ctx context.Context, msg *ttnpb.ApplicationUp, hoo
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodPost, url.String(), bytes.NewReader(buf))
-	if err != nil {
-		return nil, err
+	var requests []*http.Request
+	for _, v := range buf {
+		req, err := http.NewRequest(http.MethodPost, url.String(), bytes.NewReader(v))
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, req)
+		for key, value := range hook.Headers {
+			req.Header.Set(key, value)
+		}
+		if hook.DownlinkAPIKey != "" {
+			req.Header.Set(downlinkKeyHeader, hook.DownlinkAPIKey)
+			req.Header.Set(downlinkPushHeader, w.createDownlinkURL(ctx, hook.ApplicationWebhookIdentifiers, msg.EndDeviceIdentifiers, "push"))
+			req.Header.Set(downlinkReplaceHeader, w.createDownlinkURL(ctx, hook.ApplicationWebhookIdentifiers, msg.EndDeviceIdentifiers, "replace"))
+		}
+		req.Header.Set("Content-Type", format.ContentType)
+		req.Header.Set("User-Agent", userAgent)
 	}
-	for key, value := range hook.Headers {
-		req.Header.Set(key, value)
-	}
-	if hook.DownlinkAPIKey != "" {
-		req.Header.Set(downlinkKeyHeader, hook.DownlinkAPIKey)
-		req.Header.Set(downlinkPushHeader, w.createDownlinkURL(ctx, hook.ApplicationWebhookIdentifiers, msg.EndDeviceIdentifiers, "push"))
-		req.Header.Set(downlinkReplaceHeader, w.createDownlinkURL(ctx, hook.ApplicationWebhookIdentifiers, msg.EndDeviceIdentifiers, "replace"))
-	}
-	req.Header.Set("Content-Type", format.ContentType)
-	req.Header.Set("User-Agent", userAgent)
-	return req, nil
+	return requests, nil
 }
 
 var errWebhookNotFound = errors.DefineNotFound("webhook_not_found", "webhook not found")

@@ -301,7 +301,8 @@ func TestPubSub(t *testing.T) {
 				if !a.So(err, should.BeNil) {
 					t.FailNow()
 				}
-				a.So(msg.Message.Body, should.Resemble, expectedBody)
+				a.So(expectedBody, should.HaveLength, 1)
+				a.So(msg.Message.Body, should.Resemble, expectedBody[0])
 			})
 			if !tcok {
 				t.FailNow()

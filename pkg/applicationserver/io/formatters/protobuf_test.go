@@ -86,7 +86,8 @@ func TestProtobufUpstream(t *testing.T) {
 			if !a.So(err, should.BeNil) {
 				t.FailNow()
 			}
-			a.So(actual, should.Resemble, expected)
+			a.So(actual, should.HaveLength, 1)
+			a.So(actual[0], should.Resemble, expected)
 		})
 	}
 }
