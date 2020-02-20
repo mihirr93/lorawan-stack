@@ -63,4 +63,4 @@ func (decodedjson) ToDownlinkQueueRequest(data []byte) (*ttnpb.DownlinkQueueRequ
 }
 
 // DecodedJSON is a formatter that uses JSON marshaling.
-var DecodedJSON Formatter = &json{}
+var DecodedJSON Formatter = &decodedjson{}
