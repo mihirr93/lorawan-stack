@@ -24,6 +24,7 @@ import (
 	"go.thethings.network/lorawan-stack/pkg/errors"
 	"go.thethings.network/lorawan-stack/pkg/gogoproto"
 	"go.thethings.network/lorawan-stack/pkg/messageprocessors"
+	"go.thethings.network/lorawan-stack/pkg/messageprocessors/cayennelpp"
 	"go.thethings.network/lorawan-stack/pkg/scripting"
 	js "go.thethings.network/lorawan-stack/pkg/scripting/javascript"
 	"go.thethings.network/lorawan-stack/pkg/ttnpb"
@@ -31,12 +32,14 @@ import (
 
 type host struct {
 	engine scripting.Engine
+	other  messageprocessors.PayloadEncodeDecoder
 }
 
 // New creates and returns a new Javascript payload encoder and decoder.
 func New() messageprocessors.PayloadEncodeDecoder {
 	return &host{
 		engine: js.New(scripting.DefaultOptions),
+		other:  cayennelpp.New(),
 	}
 }
 
@@ -131,9 +134,20 @@ func (h *host) Encode(ctx context.Context, ids ttnpb.EndDeviceIdentifiers, versi
 func (h *host) Decode(ctx context.Context, ids ttnpb.EndDeviceIdentifiers, version *ttnpb.EndDeviceVersionIdentifiers, msg *ttnpb.ApplicationUplink, script string) error {
 	defer trace.StartRegion(ctx, "decode message").End()
 
+	var lpp map[string]interface{}
+	err := h.other.Decode(ctx, ids, version, msg, script)
+	if err == nil {
+		lpp, err = gogoproto.Map(msg.DecodedPayload)
+		if err != nil {
+			lpp = nil
+		}
+	}
+	msg.DecodedPayload = nil
+
 	env := h.createEnvironment(ids, version)
 	env["payload"] = msg.FRMPayload
 	env["f_port"] = msg.FPort
+	env["lpp"] = lpp
 	script = fmt.Sprintf(`
 		%s
 		Decoder(env.payload, env.f_port)
