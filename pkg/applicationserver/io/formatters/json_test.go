@@ -84,7 +84,8 @@ func TestJSONUpstream(t *testing.T) {
 			if !a.So(err, should.BeNil) {
 				t.FailNow()
 			}
-			a.So(string(buf), should.Equal, tc.Result)
+			a.So(buf, should.HaveLength, 1)
+			a.So(string(buf[0]), should.Equal, tc.Result)
 		})
 	}
 }

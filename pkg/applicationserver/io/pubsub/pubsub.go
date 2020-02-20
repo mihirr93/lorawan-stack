@@ -144,17 +144,19 @@ func (i *integration) handleUp(ctx context.Context) {
 			if topic == nil {
 				continue
 			}
-			buf, err := i.format.FromUp(up.ApplicationUp)
+			msgs, err := i.format.FromUp(up.ApplicationUp)
 			if err != nil {
 				logger.WithError(err).Warn("Failed to marshal upstream message")
 				continue
 			}
-			err = topic.Send(ctx, &pubsub.Message{
-				Body: buf,
-			})
-			if err != nil {
-				logger.WithError(err).Warn("Failed to publish upstream message")
-				continue
+			for _, msg := range msgs {
+				err = topic.Send(ctx, &pubsub.Message{
+					Body: msg,
+				})
+				if err != nil {
+					logger.WithError(err).Warn("Failed to publish upstream message")
+					continue
+				}
 			}
 			logger.Debug("Publish upstream message")
 		}

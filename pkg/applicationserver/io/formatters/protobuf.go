@@ -18,8 +18,12 @@ import "go.thethings.network/lorawan-stack/pkg/ttnpb"
 
 type protobuf struct{}
 
-func (protobuf) FromUp(msg *ttnpb.ApplicationUp) ([]byte, error) {
-	return msg.Marshal()
+func (protobuf) FromUp(msg *ttnpb.ApplicationUp) ([][]byte, error) {
+	m, err := msg.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return [][]byte{m}, nil
 }
 
 func (protobuf) ToDownlinks(buf []byte) (*ttnpb.ApplicationDownlinks, error) {

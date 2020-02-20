@@ -22,8 +22,12 @@ import (
 type json struct {
 }
 
-func (json) FromUp(msg *ttnpb.ApplicationUp) ([]byte, error) {
-	return jsonpb.TTN().Marshal(msg)
+func (json) FromUp(msg *ttnpb.ApplicationUp) ([][]byte, error) {
+	m, err := jsonpb.TTN().Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+	return [][]byte{m}, nil
 }
 
 func (json) ToDownlinks(data []byte) (*ttnpb.ApplicationDownlinks, error) {
