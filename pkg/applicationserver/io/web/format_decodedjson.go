@@ -19,7 +19,7 @@ import "go.thethings.network/lorawan-stack/pkg/applicationserver/io/formatters"
 func init() {
 	formats["decodedjson"] = Format{
 		Formatter:   formatters.DecodedJSON,
-		Name:        "Decoded JSON",
+		Name:        "OGC Sensor Things",
 		ContentType: "application/json",
 	}
 }

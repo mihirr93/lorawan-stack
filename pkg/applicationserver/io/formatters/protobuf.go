@@ -23,7 +23,7 @@ func (protobuf) FromUp(msg *ttnpb.ApplicationUp) ([][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return [][]byte{m}, err
+	return [][]byte{m}, nil
 }
 
 func (protobuf) ToDownlinks(buf []byte) (*ttnpb.ApplicationDownlinks, error) {

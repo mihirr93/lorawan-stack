@@ -27,7 +27,7 @@ func (json) FromUp(msg *ttnpb.ApplicationUp) ([][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return [][]byte{m}, err
+	return [][]byte{m}, nil
 }
 
 func (json) ToDownlinks(data []byte) (*ttnpb.ApplicationDownlinks, error) {
